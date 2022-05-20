@@ -32,14 +32,18 @@ namespace dotnetWebAPI.Controllers
 
         public HttpResponseMessage GetLikesByUser(int user_id)
         {
-            var users = (from a in likeContext.likes
-                        from b in likeContext.likes
-                        from u in userContext.users
-                        where a.liker == b.likee
-                        where a.likee == b.likee
-                        where a.likee == user_id
-                        where u.id == b.likee
-                        select u);
+            var likesList = (from a in likeContext.likes
+                          where a.likee == user_id
+                          from b in likeContext.likes
+                          where b.liker == user_id
+                          where a.liker == b.likee
+                          select b.likee
+                ).ToArray();
+
+            var users = (from a in userContext.users
+                         join b in likesList on a.id equals b
+                         select a);
+
             if(users != null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, users);
